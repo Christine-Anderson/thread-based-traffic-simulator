@@ -4,6 +4,9 @@
 #include "lib/olcPixelGameEngine.h"
 #include "square.h"
 #include "math.h"
+#include "traffic/trafficSimulator.h"
+
+using namespace traffic;
 
 class Example : public olc::PixelGameEngine
 {
@@ -101,9 +104,10 @@ public:
 
 int main()
 {
-	Example demo;
-	if (demo.Construct(1000, 1000, 1, 1))
-		demo.Start();
+	// Example demo;
+	// if (demo.Construct(1000, 1000, 1, 1))
+	// 	demo.Start();
+	TrafficSimulator trafficSimulator(10, 10);
 
 	return 0;
 }
