@@ -6,7 +6,7 @@
 #include <mutex>
 
 namespace traffic {
-    class TrafficDirector {
+    class TrafficDirector { // todo 
         public:
             TrafficDirector();
             ~TrafficDirector();
@@ -17,7 +17,7 @@ namespace traffic {
     };
     
     TrafficDirector::TrafficDirector() {
-
+        std::cout << "create traffic director" << std::endl;
     }
 
     TrafficDirector::~TrafficDirector() {

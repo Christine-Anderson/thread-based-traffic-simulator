@@ -4,30 +4,39 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <vector>
 
 #include "street.h"
 #include "trafficDirector.h"
 
 namespace traffic { //todo separate .h and .cpp files
-    class TrafficSimulator { //todo make more complicated?
+    class TrafficSimulator { // todo Thread scheduling simulator
         public:
-            TrafficSimulator(int numCarsEast, int numCarsWest); // todo need to add in the vars we want user to be able to change
+            Street* street;
+            std::vector<std::thread> cars;
+
+            TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector); // todo need to add in the vars we want user to be able to change
             ~TrafficSimulator();
             std::string runSimulation();
-            void createCars(int numCars, Direction direction);
-            void startCars();
 
         private:
-            Street* street;
+            TrafficDirector* trafficDirector;
             int numCarsEast;
             int numCarsWest;
-            std::vector<std::thread> cars;
+            bool hasPedestrians;
+
+            void createCars(int numCars, Direction direction);
+            void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest) {
+    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) {
+        this->street = new Street();
         this->numCarsEast = numCarsEast;
         this->numCarsWest = numCarsWest;
-        this->street = new Street();
+        this->hasPedestrians = hasPedestrians;
+        if (hasTrafficDirector) {
+            this->trafficDirector = new TrafficDirector();
+        }
     }
 
     TrafficSimulator::~TrafficSimulator() {
@@ -36,23 +45,21 @@ namespace traffic { //todo separate .h and .cpp files
 
     std::string TrafficSimulator::runSimulation() {
         //todo add histogram tracking of some sort; 
-
+        std::cout << "start simulation" << std::endl; // todo make function for optional print statements?
         createCars(numCarsEast, EAST);
         createCars(numCarsWest, WEST);
-
-        TrafficDirector trafficDirector(); //todo
-
-        startCars();
+        waitForSimToEnd();
+        return "done";
     }
 
     void TrafficSimulator::createCars(int numCars, Direction direction) {
         for(int i = 0; i < numCars; i++) {
-            cars.push_back(std::thread (std::bind(Street::enterStreet, &street, direction)));
+            cars.emplace_back(&Street::enterStreet, street, direction);
         }
     }
 
-    void TrafficSimulator::startCars() {
-        for(auto& thread : cars) {
+    void TrafficSimulator::waitForSimToEnd() { // todo add pedestrians (on or off, like an interrupt to the threads, make all threads wait)
+        for(auto& thread : cars) { // todo no scheduling mech vs traffic director/dif mechs
             thread.join();
         }
     }
