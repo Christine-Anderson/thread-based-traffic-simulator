@@ -6,24 +6,23 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace traffic {
-    enum Direction {EAST, WEST};
-    int MAX_OCCUPANCY = 3;
+#include "statistics.h"
 
+namespace traffic {
     class Street {
         public:
-            Street();
+            Street(Statistics* stats);
             ~Street();
             void enterStreet(Direction carDirection);
         
         private:
+            Statistics* stats;
             Direction streetDirection;
             int numCarsOnStreet;
-            bool canEnterStreet;
             // bool canEnterEast;
             // bool canEnterWest;
             std::mutex streetMutex;
-            std::condition_variable signalEnterStreet;
+            std::thread::id threadId;
             // std::condition_variable enterEastBound;
             // std::condition_variable enterWestBound;
 
@@ -35,12 +34,9 @@ namespace traffic {
 
     };
     
-    Street::Street() {
-        std::cout << "street" << std::endl;
-        this->numCarsOnStreet = 0;
+    Street::Street(Statistics* stats) : stats(stats), numCarsOnStreet(0) {
         // this->canEnterEast = false;
         // this->canEnterWest = false;
-        this->canEnterStreet = false;
     }
 
     Street::~Street() {
@@ -48,15 +44,19 @@ namespace traffic {
     }
 
     void Street::enterStreet(Direction carDirection) {
-        std::cout << "we made it" << std::endl;
+        threadId = std::this_thread::get_id();
+        stats->recordDirection(threadId, carDirection);
+        stats->recordTime(threadId, START, std::chrono::high_resolution_clock::now());
+
+        std::cout << threadId << " waiting to go " << carDirection << std::endl;
         std::unique_lock<std::mutex> streetLock(streetMutex);
-        std::cout << "enterStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
+        std::cout << threadId << " enterStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
+
         if (numCarsOnStreet == 0) {
-            std::cout << "empty street drive on through" << std::endl;
+            std::cout << "empty street drive on through" << threadId << std::endl;
             streetDirection = carDirection;
             driveThroughStreet(streetLock, carDirection);
         }
-
         // if (numCarsOnStreet == 0) {
         //     std::cout << "empty street drive on through" << std::endl;
         //     streetDirection = carDirection;
@@ -68,22 +68,21 @@ namespace traffic {
     }
 
     void Street::driveThroughStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
+        stats->recordTime(threadId, ENTER, std::chrono::high_resolution_clock::now());
+
         numCarsOnStreet++;
-        std::cout << "driveThroughStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
+        std::cout << threadId << " driveThroughStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
         int j = 0;
         for (int i = 0; i < 100000; i++) {
             j++;
         }
         assertStreetOccupancyConstraints(streetLock, carDirection);
+        stats->recordOccupancy(numCarsOnStreet, carDirection);
         leaveStreet(streetLock);
     }
 
     void Street::waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
-        std::cout << "waiting to go " << carDirection << std::endl;
-
-        signalEnterStreet.wait(streetLock, [this]{ return canEnterStreet; });
-        canEnterStreet = false;
-        driveThroughStreet(streetLock, carDirection);
+        std::cout << threadId << " waiting to go " << carDirection << std::endl;
 
         // if (carDirection == EAST) {
         //     enterEastBound.wait(streetLock, [this]{ return canEnterEast; });
@@ -95,8 +94,10 @@ namespace traffic {
     }
 
     void Street::leaveStreet(std::unique_lock<std::mutex>& streetLock) {
+        stats->recordTime(threadId, LEAVE, std::chrono::high_resolution_clock::now());
+
         numCarsOnStreet--;
-        std::cout << "leaveStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
+        std::cout << threadId << " leaveStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
         // if (numCarsOnStreet < MAX_OCCUPANCY) {
         //     signalCarToEnter(streetLock);
         // } else {
@@ -104,15 +105,7 @@ namespace traffic {
         // }
     }
 
-    void Street::signalCarToEnter(std::unique_lock<std::mutex>& streetLock) {
-        {
-            std::lock_guard<std::mutex> streetLock(streetMutex);
-            canEnterStreet = true;
-            std::cout << "signal car to enter" << std::endl;
-        }
-        streetLock.unlock();
-        signalEnterStreet.notify_all();
-        
+    void Street::signalCarToEnter(std::unique_lock<std::mutex>& streetLock) {      
         // if (streetDirection == EAST) {
         //     {
         //         std::lock_guard<std::mutex> streetLock(streetMutex);

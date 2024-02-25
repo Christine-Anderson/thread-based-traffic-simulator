@@ -7,17 +7,19 @@
 #include <vector>
 
 #include "street.h"
-#include "trafficDirector.h"
+#include "statistics.h"
+#include "trafficDirector.h" //todo rename
 
-namespace traffic { //todo separate .h and .cpp files
+namespace traffic {
     class TrafficSimulator { // todo Thread scheduling simulator
         public:
+            Statistics* stats;
             Street* street;
             std::vector<std::thread> cars;
 
             TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector); // todo need to add in the vars we want user to be able to change
             ~TrafficSimulator();
-            std::string runSimulation();
+            void runSimulation();
 
         private:
             TrafficDirector* trafficDirector;
@@ -29,11 +31,9 @@ namespace traffic { //todo separate .h and .cpp files
             void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) {
-        this->street = new Street();
-        this->numCarsEast = numCarsEast;
-        this->numCarsWest = numCarsWest;
-        this->hasPedestrians = hasPedestrians;
+    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) :
+    stats(new Statistics()), street(new Street(stats)), numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
+        this->hasPedestrians = hasPedestrians; // todo haven't done yet
         if (hasTrafficDirector) {
             this->trafficDirector = new TrafficDirector();
         }
@@ -43,13 +43,12 @@ namespace traffic { //todo separate .h and .cpp files
         // todo clean up
     }
 
-    std::string TrafficSimulator::runSimulation() {
-        //todo add histogram tracking of some sort; 
-        std::cout << "start simulation" << std::endl; // todo make function for optional print statements?
-        createCars(numCarsEast, EAST);
+    void TrafficSimulator::runSimulation() {
+        createCars(numCarsEast, EAST); // todo loop sim for more stats?
         createCars(numCarsWest, WEST);
         waitForSimToEnd();
-        return "done";
+        std::cout << "done here's the stats:" << std::endl;
+        stats->printData();
     }
 
     void TrafficSimulator::createCars(int numCars, Direction direction) {

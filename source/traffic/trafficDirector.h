@@ -17,7 +17,6 @@ namespace traffic {
     };
     
     TrafficDirector::TrafficDirector() {
-        std::cout << "create traffic director" << std::endl;
     }
 
     TrafficDirector::~TrafficDirector() {

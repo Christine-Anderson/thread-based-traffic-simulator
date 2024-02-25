@@ -107,7 +107,7 @@ int main()
 	// Example demo;
 	// if (demo.Construct(1000, 1000, 1, 1))
 	// 	demo.Start();
-	TrafficSimulator trafficSimulator(10, 10, false, false);
+	TrafficSimulator trafficSimulator(5, 5, false, false);
 	trafficSimulator.runSimulation();
 
 	return 0;
