@@ -7,6 +7,7 @@
 #include <condition_variable>
 
 #include "statistics.h"
+#include "../enums.h"
 
 namespace traffic {
     class Street {
@@ -31,7 +32,6 @@ namespace traffic {
             void leaveStreet(std::unique_lock<std::mutex>& streetLock);
             void signalCarToEnter(std::unique_lock<std::mutex>& streetLock);
             void assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
-
     };
     
     Street::Street(Statistics* stats) : stats(stats), numCarsOnStreet(0) {
@@ -48,7 +48,7 @@ namespace traffic {
         stats->recordDirection(threadId, carDirection);
         stats->recordTime(threadId, START, std::chrono::high_resolution_clock::now());
 
-        std::cout << threadId << " waiting to go " << carDirection << std::endl;
+        std::cout << threadId << " waiting to go " << directionToString(carDirection) << std::endl;
         std::unique_lock<std::mutex> streetLock(streetMutex);
         std::cout << threadId << " enterStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
 
@@ -82,7 +82,7 @@ namespace traffic {
     }
 
     void Street::waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
-        std::cout << threadId << " waiting to go " << carDirection << std::endl;
+        std::cout << threadId << " waiting to go " << directionToString(carDirection) << std::endl;
 
         // if (carDirection == EAST) {
         //     enterEastBound.wait(streetLock, [this]{ return canEnterEast; });

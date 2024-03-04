@@ -7,10 +7,11 @@
 #include <ctime>
 #include <unordered_map>
 
+#include "../enums.h"
+
 namespace traffic {
     const int MAX_OCCUPANCY = 3;
 
-    enum Direction {EAST, WEST, NUM_DIRECTIONS};
     enum Time {START, ENTER, LEAVE};
 
     using ClockType = std::chrono::high_resolution_clock;
@@ -33,7 +34,7 @@ namespace traffic {
 
         private:
             std::unordered_map<std::thread::id, crossingDatum> crossingData;
-            int occupancy[NUM_DIRECTIONS][MAX_OCCUPANCY + 1];
+            int occupancy[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1];
             std::mutex statsMutex;
 
     };
@@ -53,10 +54,13 @@ namespace traffic {
     void Statistics::recordTime(std::thread::id threadId, Time timeToUpdate, std::chrono::time_point<ClockType> time) {
         std::unique_lock<std::mutex> statsLock(statsMutex);
         if (timeToUpdate == START) {
+            std::cout << "startWaitTime for" << threadId << "is " << timeToUpdate << std::endl;
             crossingData[threadId].startWaitTime = time;
         } else if (timeToUpdate == ENTER) {
+            std::cout << "enterTime for" << threadId << "is " << timeToUpdate << std::endl;
             crossingData[threadId].enterTime = time;
         } else if (timeToUpdate == LEAVE) {
+            std::cout << "leaveTime for" << threadId << "is " << timeToUpdate << std::endl;
             crossingData[threadId].leaveTime = time;
         } 
     }
