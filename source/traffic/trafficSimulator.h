@@ -9,7 +9,7 @@
 #include "street.h"
 #include "statistics.h"
 #include "trafficDirector.h" //todo rename
-#include "../enums.h"
+#include "../definitions.h"
 
 namespace traffic {
     class TrafficSimulator { // todo Thread scheduling simulator
@@ -20,7 +20,7 @@ namespace traffic {
 
             TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector); // todo need to add in the vars we want user to be able to change
             ~TrafficSimulator();
-            void runSimulation();
+            Statistics* runSimulation();
 
         private:
             TrafficDirector* trafficDirector;
@@ -44,12 +44,12 @@ namespace traffic {
         // todo clean up
     }
 
-    void TrafficSimulator::runSimulation() {
+    Statistics* TrafficSimulator::runSimulation() {
         createCars(numCarsEast, Direction::EAST); // todo loop sim for more stats?
         createCars(numCarsWest, Direction::WEST);
         waitForSimToEnd();
-        std::cout << "done here's the stats:" << std::endl;
         stats->printData();
+        return stats;
     }
 
     void TrafficSimulator::createCars(int numCars, Direction direction) {

@@ -4,42 +4,50 @@
 #include "lib/olcPixelGameEngine.h"
 #include "display/car.h"
 #include "traffic/trafficSimulator.h"
-#include "enums.h"
+#include "definitions.h"
 
 using namespace traffic;
 
 
-class Example : public olc::PixelGameEngine {
+class RenderSimulation : public olc::PixelGameEngine {
     public:
-        Example() {
-            sAppName = "Example";
+        RenderSimulation(Statistics* simStats) : simStats(simStats) {
+            sAppName = "RenderSimulation";
         }
 
     public:
-        Car* testCar;
+        Statistics* simStats;
         olc::Sprite* roadSprite = nullptr;
         olc::Decal* roadDecal = nullptr;
-        // olc::vf2d UP = olc::vf2d(0.0, -1.0);
-        // olc::vf2d DOWN = olc::vf2d(0.0, 1.0);
-        // olc::vf2d LEFT = olc::vf2d(-1.0, 0.0);
-        // olc::vf2d RIGHT = olc::vf2d(1.0, 0.0);
+        std::vector<Car*> cars;
 
 	bool OnUserCreate() override {
 		roadSprite = new olc::Sprite("./source/assets/road.png");
 		roadDecal = new olc::Decal(roadSprite);
-        testCar = new Car(Direction::EAST);
-		// sq_burg.init("./source/assets/burgandy.png", olc::vf2d(0.0, 20.0), olc::vf2d(0.0, 0.0), 100, 100, 0.0);
-		// sq_blue.init("./source/assets/blue.png", olc::vf2d(300.0, 300.0), olc::vf2d(0.0, 0.0), 100, 100, 0.0);
+        std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+
+        const std::vector<std::thread::id>& crossingOrder = simStats->getCrossingOrder();
+        const std::unordered_map<std::thread::id, crossingDatum>& crossingData = simStats->getCrossingData();
+
+        for (auto& threadId : crossingOrder) {            
+            crossingDatum data = crossingData.at(threadId);
+            Car* car = new Car(this, startTime, threadId, data);
+            cars.push_back(car);
+        }
+
 		return true;
 	}
 
-	bool OnUserUpdate(float fElapsedTime) override {
+	bool OnUserUpdate(float elapsedTime) override {
 		Clear(olc::VERY_DARK_GREY);
 		DrawDecal(olc::vf2d(0.0, 0.0), roadDecal);
-		// handleInputs(fElapsedTime);
-        testCar->render(this, fElapsedTime);
-		// sq_burg.render(this, fElapsedTime);
-		// sq_blue.render(this, fElapsedTime);
+        this->DrawStringDecal({1,1}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()));
+
+        std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+        for(auto& car : cars) {
+            car->update(currentTime, elapsedTime);
+        }
+
 		return true;
 	}
 
@@ -47,7 +55,7 @@ class Example : public olc::PixelGameEngine {
 		return direction* olc::vf2d(-1.0, -1.0);
 	}
 
-	void handleInputs(float fElapsedTime) {
+	void handleInputs(float elapsedTime) {
 	// 	float angle_increment = 0;
 	// 	olc::vf2d the_move = olc::vf2d(0.0, 0.0);
 
@@ -105,11 +113,11 @@ class Example : public olc::PixelGameEngine {
 
 int main() {
 	TrafficSimulator trafficSimulator(5, 5, false, false);
-	trafficSimulator.runSimulation();
+	Statistics* simStats = trafficSimulator.runSimulation();
 
-	Example demo;
-	if (demo.Construct(1000, 700, 1, 1))
-		demo.Start();
+	RenderSimulation simulation(simStats);
+	if (simulation.Construct(1000, 700, 1, 1))
+		simulation.Start();
 
 	return 0;
 }
