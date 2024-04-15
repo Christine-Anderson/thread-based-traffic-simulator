@@ -17,7 +17,8 @@ enum CarState {
     HIDDEN,
     WAITING1,
     WAITING2,
-    CROSSING
+    CROSSING,
+    DONE
 };
 
 std::string directionToString(Direction direction) {

@@ -1,6 +1,8 @@
 #define OLC_IMAGE_STB
 #define OLC_PGE_APPLICATION
 
+#include <set>
+
 #include "lib/olcPixelGameEngine.h"
 #include "display/car.h"
 #include "traffic/trafficSimulator.h"
@@ -28,10 +30,11 @@ class RenderSimulation : public olc::PixelGameEngine {
 
         const std::vector<std::thread::id>& crossingOrder = simStats->getCrossingOrder();
         const std::unordered_map<std::thread::id, crossingDatum>& crossingData = simStats->getCrossingData();
+        const std::chrono::duration<double> normalizeStartTimeTo = crossingData.at(crossingOrder[0]).startWaitTime;
 
         for (auto& threadId : crossingOrder) {            
             crossingDatum data = crossingData.at(threadId);
-            Car* car = new Car(this, startTime, threadId, data);
+            Car* car = new Car(this, startTime, normalizeStartTimeTo, threadId, data);
             cars.push_back(car);
         }
 
@@ -41,15 +44,35 @@ class RenderSimulation : public olc::PixelGameEngine {
 	bool OnUserUpdate(float elapsedTime) override {
 		Clear(olc::VERY_DARK_GREY);
 		DrawDecal(olc::vf2d(0.0, 0.0), roadDecal);
-        this->DrawStringDecal({1,1}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()));
+        this->DrawStringDecal({1,1}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY())); //todo delete
+        // this->DrawRectDecal({ static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, {512, 512}, olc::RED);
 
         std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-        for(auto& car : cars) {
+        std::set<CarState> carStates;
+
+        for (auto& car : cars) {
             car->update(currentTime, elapsedTime);
+            carStates.insert(car->getState());
+        }
+
+        if (areCarsDone(carStates)) {
+            this->DrawStringDecal({425,300}, "Simulation complete!");
         }
 
 		return true;
 	}
+
+    bool areCarsDone(std::set<CarState>& carStates) {
+        bool allDone = true;
+        for (const auto& state : carStates) {
+            if (state != CarState::DONE) {
+                allDone = false;
+                break;
+            }
+        }
+
+        return allDone;
+    }
 
 	olc::vf2d opposite(olc::vf2d direction) {
 		return direction* olc::vf2d(-1.0, -1.0);
