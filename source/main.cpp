@@ -4,12 +4,11 @@
 #include <set>
 
 #include "lib/olcPixelGameEngine.h"
-#include "display/car.h"
+#include "display/carManager.h"
 #include "traffic/trafficSimulator.h"
 #include "definitions.h"
 
 using namespace traffic;
-
 
 class RenderSimulation : public olc::PixelGameEngine {
     public:
@@ -17,26 +16,17 @@ class RenderSimulation : public olc::PixelGameEngine {
             sAppName = "RenderSimulation";
         }
 
-    public:
         Statistics* simStats;
+        CarManager* carManager;
         olc::Sprite* roadSprite = nullptr;
         olc::Decal* roadDecal = nullptr;
-        std::vector<Car*> cars;
 
 	bool OnUserCreate() override {
 		roadSprite = new olc::Sprite("./source/assets/road.png");
 		roadDecal = new olc::Decal(roadSprite);
-        std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 
-        const std::vector<std::thread::id>& crossingOrder = simStats->getCrossingOrder();
-        const std::unordered_map<std::thread::id, crossingDatum>& crossingData = simStats->getCrossingData();
-        const std::chrono::duration<double> normalizeStartTimeTo = crossingData.at(crossingOrder[0]).startWaitTime;
-
-        for (auto& threadId : crossingOrder) {            
-            crossingDatum data = crossingData.at(threadId);
-            Car* car = new Car(this, startTime, normalizeStartTimeTo, threadId, data);
-            cars.push_back(car);
-        }
+        carManager = new CarManager(this, std::chrono::high_resolution_clock::now(), simStats);
+        carManager->createCars();
 
 		return true;
 	}
@@ -44,38 +34,19 @@ class RenderSimulation : public olc::PixelGameEngine {
 	bool OnUserUpdate(float elapsedTime) override {
 		Clear(olc::VERY_DARK_GREY);
 		DrawDecal(olc::vf2d(0.0, 0.0), roadDecal);
-        this->DrawStringDecal({1,1}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY())); //todo delete
+
+        this->DrawStringDecal({10, 10}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()), olc::WHITE, {2.0, 2.0}); //todo delete
         // this->DrawRectDecal({ static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, {512, 512}, olc::RED);
+        this->DrawStringDecal({20, 150}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::EAST)), olc::WHITE, {2.0, 2.0});
+        this->DrawStringDecal({800, 150}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::WEST)), olc::WHITE, {2.0, 2.0});
 
-        std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-        std::set<CarState> carStates;
+        carManager->updateCars(std::chrono::high_resolution_clock::now(), elapsedTime);
 
-        for (auto& car : cars) {
-            car->update(currentTime, elapsedTime);
-            carStates.insert(car->getState());
-        }
-
-        if (areCarsDone(carStates)) {
-            this->DrawStringDecal({425,300}, "Simulation complete!");
+        if (carManager->areCarsDone()) {
+            this->DrawStringDecal({370,300}, "Simulation complete!", olc::WHITE, {2.0, 2.0});
         }
 
 		return true;
-	}
-
-    bool areCarsDone(std::set<CarState>& carStates) {
-        bool allDone = true;
-        for (const auto& state : carStates) {
-            if (state != CarState::DONE) {
-                allDone = false;
-                break;
-            }
-        }
-
-        return allDone;
-    }
-
-	olc::vf2d opposite(olc::vf2d direction) {
-		return direction* olc::vf2d(-1.0, -1.0);
 	}
 
 	void handleInputs(float elapsedTime) {

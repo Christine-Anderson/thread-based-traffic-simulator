@@ -1,10 +1,6 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#include <iostream>
-#include <chrono>
-#include <ctime>
-
 const int MULTIPLY_TIME_BY_FACTOR = 50000;
 
 enum Direction {
@@ -15,8 +11,8 @@ enum Direction {
 
 enum CarState {
     HIDDEN,
-    WAITING1,
-    WAITING2,
+    WAITING_HIDDEN,
+    WAITING_VISIBLE,
     CROSSING,
     DONE
 };
