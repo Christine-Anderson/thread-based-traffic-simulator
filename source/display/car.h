@@ -14,13 +14,15 @@ class Car {
     const std::vector<olc::vf2d> WAIT_TO_GO_WEST = {{900, 230}};
     const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 360}};
     const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 360}, {350, 360}, {200, 230}, {-256, 230}};
-    const float DEFAULT_SPEED = 100.0;
+    const float DEFAULT_SPEED = 500.0;
 
     public:
         Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData);
         ~Car();
         void update(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime);
+        Direction getDirection();
         CarState getState();
+        void setState(CarState newState);
 
     private:
         olc::PixelGameEngine* engine;
@@ -72,15 +74,11 @@ void Car::updateState(std::chrono::high_resolution_clock::time_point currentTime
 
     auto timeSinceStart = std::chrono::duration<double>(currentTime - startTime);
 
-    if (timeSinceStart > startWaitTime && timeSinceStart < enterTime && state != CarState::WAITING_HIDDEN) {
+    if (timeSinceStart > startWaitTime && timeSinceStart < enterTime && state == CarState::HIDDEN && state != CarState::WAITING_HIDDEN) {
         std::cout << "waiting hidden" << std::endl;
-        state = CarState::WAITING_VISIBLE; // todo need to change this...
-        initState(state);
-    } else if (timeSinceStart > startWaitTime && timeSinceStart < enterTime && state != CarState::WAITING_VISIBLE) { 
-        std::cout << "waiting visible" << std::endl;
-        state = CarState::WAITING_VISIBLE;
-        initState(state);         
-    } else if (timeSinceStart >= enterTime && timeSinceStart <= leaveTime && state != CarState::CROSSING) {
+        state = CarState::WAITING_HIDDEN;
+        initState(state);        
+    } else if (timeSinceStart >= enterTime && timeSinceStart <= leaveTime && state == CarState::WAITING_VISIBLE && state != CarState::CROSSING) {
         std::cout << "crossing" << std::endl;
         state = CarState::CROSSING;
         initState(state);
@@ -96,14 +94,10 @@ void Car::initState(CarState state) {
 
     switch(state) {
         case CarState::WAITING_HIDDEN:
-            // todo increment waiting counter
-            break;
-        case CarState::WAITING_VISIBLE:
             path = (crossingData.direction == Direction::EAST)? WAIT_TO_GO_EAST : WAIT_TO_GO_WEST;
             currentPathIndex = 0;
             break;
         case CarState::CROSSING:
-            // todo decrement waiting counter
             path = (crossingData.direction == Direction::EAST)? PATH_CROSSING_EAST : PATH_CROSSING_WEST;
             currentPathIndex = 0;
             pathFromStart = (crossingData.direction == Direction::EAST)? WAIT_TO_GO_EAST : WAIT_TO_GO_WEST;
@@ -118,7 +112,6 @@ void Car::initState(CarState state) {
 void Car::updatePosition(float elapsedTime) {
     switch(state) {
         case CarState::WAITING_VISIBLE:
-        case CarState::WAITING_HIDDEN:
         case CarState::CROSSING:
             moveAlongPath(path, speed, elapsedTime);
             render(currPosition, elapsedTime);
@@ -166,8 +159,17 @@ float Car::calculateAverageSpeedAlongPath(const std::vector<olc::vf2d>& path) {
     return averageSpeed;
 }
 
+Direction Car::getDirection() {
+    return crossingData.direction;
+}
+
 CarState Car::getState() {
     return state;
+}
+
+void Car::setState(CarState newState) {
+    state = newState;
+    std::cout << "new state " << stateToString(state) << std::endl;
 }
 
 #endif

@@ -20,11 +20,26 @@ enum CarState {
 std::string directionToString(Direction direction) {
     switch(direction) {
         case Direction::EAST:
-            return "East";
+            return "EAST";
         case Direction::WEST:
-            return "West";
+            return "WEST";
         case Direction::NUM_DIRECTIONS:
             return "2";
+    }
+}
+
+std::string stateToString(CarState direction) {
+    switch(direction) {
+        case CarState::HIDDEN:
+            return "HIDDEN";
+        case CarState::WAITING_HIDDEN:
+            return "WAITING_HIDDEN";
+        case CarState::WAITING_VISIBLE:
+            return "WAITING_VISIBLE";
+        case CarState::CROSSING:
+            return "CROSSING";
+        case CarState::DONE:
+            return "DONE";
     }
 }
 

@@ -20,13 +20,7 @@ class CarManager {
         void createCars();
         void updateCars(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime);
         bool areCarsDone();
-        // void renderCars();
-
-        void incrementCarsWaiting(Direction direction);
-        void decrementCarsWaiting(Direction direction);
         int getCarsWaiting(Direction direction);
-
-        // void updateWaitingStates();
 
     private:
         olc::PixelGameEngine* engine;
@@ -34,12 +28,18 @@ class CarManager {
         Statistics* simStats;
         int carsWaitingEast;
         int carsWaitingWest;
-        std::vector<Car*> cars;
-        // void handleWaitingVisibleState();
-        // void handleWaitingHiddenState();
+        bool areCarsDoneEast;
+        bool areCarsDoneWest;
+        std::vector<Car*> carsWest;
+        std::vector<Car*> carsEast;
+
+        void updateCarsPerDirection(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime, std::vector<Car*>& cars);
+        void updateCarsWaiting(CarState prevState, CarState currState, Direction direction);
+        void incrementCarsWaiting(Direction direction);
+        void decrementCarsWaiting(Direction direction);
 };
 
-CarManager::CarManager(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, Statistics* simStats) : engine(engine), startTime(startTime), simStats(simStats), carsWaitingEast(0), carsWaitingWest(0) {}
+CarManager::CarManager(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, Statistics* simStats) : engine(engine), startTime(startTime), simStats(simStats), carsWaitingEast(0), carsWaitingWest(0), areCarsDoneEast(false), areCarsDoneWest(false) {}
 
 CarManager::~CarManager() {} // todo clean up
 
@@ -51,59 +51,89 @@ void CarManager::createCars() {
     for (auto& threadId : crossingOrder) {  
         crossingDatum data = crossingData.at(threadId);
         Car* car = new Car(engine, startTime, normalizeStartTimeTo, threadId, data);
-        cars.push_back(car);
+        data.direction == Direction::EAST? carsEast.push_back(car) : carsWest.push_back(car);
     }
 }
 
 void CarManager::updateCars(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime) {
-    // std::set<CarState> carStates;
-    std::cout << "we made it" << std::endl;
-    for (auto& car : cars) {
-        std::cout << "lopp" << std::endl;
-        car->update(currentTime, elapsedTime);
-        // carStates.insert(car->getState());
+    updateCarsPerDirection(currentTime, elapsedTime, carsEast);
+    updateCarsPerDirection(currentTime, elapsedTime, carsWest);
+}
+
+void CarManager::updateCarsPerDirection(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime, std::vector<Car*>& cars) {
+    int numCars = cars.size();
+    int firstWaitingHiddenCarIndex = -1;
+    int carsWaiting = 0;
+    int numCarsDone = 0;
+    bool isCarWaitingVisible = false;
+
+    for (size_t i = 0; i < cars.size(); i++) {
+        cars[i]->update(currentTime, elapsedTime);
+
+        Direction direction = cars[i]->getDirection();
+        CarState state = cars[i]->getState();
+
+        if (state == WAITING_HIDDEN || state == WAITING_VISIBLE) {
+            carsWaiting++;
+        }
+        
+        if (state == CarState::DONE) {
+            numCarsDone++;
+        } else if (state == CarState::WAITING_HIDDEN && firstWaitingHiddenCarIndex == -1) {
+            firstWaitingHiddenCarIndex = i;
+        } else if (state == CarState::WAITING_VISIBLE) {
+            isCarWaitingVisible = true;
+        }
+
+        if (numCarsDone == cars.size()) {
+            direction == Direction::EAST? areCarsDoneEast = true : areCarsDoneWest = true;
+        }
+
+        direction == Direction::EAST? carsWaitingEast = carsWaiting : carsWaitingWest = carsWaiting;
+    }
+
+    if (!isCarWaitingVisible && firstWaitingHiddenCarIndex >= 0 && firstWaitingHiddenCarIndex < cars.size()) {
+        cars[firstWaitingHiddenCarIndex]->setState(CarState::WAITING_VISIBLE);
     }
 }
 
-bool CarManager::areCarsDone() { //todo 
-    // bool allDone = true;
-    // for (const auto& state : carStates) {
-    //     if (state != CarState::DONE) {
-    //         allDone = false;
-    //         break;
-    //     }
-    // }
-
-    // return allDone;
-
-    return false;
+bool CarManager::areCarsDone() { 
+    return areCarsDoneEast && areCarsDoneWest;
 }
 
-void CarManager::incrementCarsWaiting(Direction direction) {
-    switch (direction){
-        case Direction::EAST:
-            carsWaitingEast++;
-            break;
-        case Direction::WEST:
-            carsWaitingWest++;
-            break;
-        default:
-            break;
-    }
-}
+// void CarManager::updateCarsWaiting(CarState prevState, CarState currState, Direction direction) {
+//     if (prevState == CarState::HIDDEN && currState == CarState::WAITING_HIDDEN) {
+//         incrementCarsWaiting(direction);
+//     } else if (prevState == CarState::WAITING_VISIBLE && currState == CarState::CROSSING) {
+//         decrementCarsWaiting(direction);
+//     }
+// }
 
-void CarManager::decrementCarsWaiting(Direction direction) {
-    switch (direction){
-        case Direction::EAST:
-            carsWaitingEast--;
-            break;
-        case Direction::WEST:
-            carsWaitingWest--;
-            break;
-        default:
-            break;
-    }
-}
+// void CarManager::incrementCarsWaiting(Direction direction) {
+//     switch (direction){
+//         case Direction::EAST:
+//             carsWaitingEast++;
+//             break;
+//         case Direction::WEST:
+//             carsWaitingWest++;
+//             break;
+//         default:
+//             break;
+//     }
+// }
+
+// void CarManager::decrementCarsWaiting(Direction direction) {
+//     switch (direction){
+//         case Direction::EAST:
+//             carsWaitingEast--;
+//             break;
+//         case Direction::WEST:
+//             carsWaitingWest--;
+//             break;
+//         default:
+//             break;
+//     }
+// }
 
 int CarManager::getCarsWaiting(Direction direction) {
     switch (direction){
