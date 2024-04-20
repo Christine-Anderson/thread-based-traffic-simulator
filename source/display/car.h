@@ -2,6 +2,7 @@
 #define CAR_H
 
 #include <vector>
+#include <random>
 
 #include "../lib/olcPixelGameEngine.h"
 #include "../definitions.h"
@@ -11,7 +12,7 @@ class Car {
     const olc::vf2d START_EAST = {-256, 360};
     const olc::vf2d START_WEST = {1256, 230};
     const std::vector<olc::vf2d> WAIT_TO_GO_EAST = {{125, 360}};
-    const std::vector<olc::vf2d> WAIT_TO_GO_WEST = {{900, 230}};
+    const std::vector<olc::vf2d> WAIT_TO_GO_WEST = {{800, 230}};
     const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 360}};
     const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 360}, {350, 360}, {200, 230}, {-256, 230}};
     const float DEFAULT_SPEED = 500.0;
@@ -38,6 +39,7 @@ class Car {
         std::vector<olc::vf2d> path;
         float speed;
 
+        olc::Sprite* generateRandomCar(Direction direction);
         void updateState(std::chrono::high_resolution_clock::time_point currentTime);
         void initState(CarState state);
         void updatePosition(float elapsedTime);
@@ -49,10 +51,10 @@ class Car {
 Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData) : engine(engine), startTime(startTime), normalizeStartTimeTo(normalizeStartTimeTo), carId(carId), crossingData(crossingData) {
     if(crossingData.direction == Direction::EAST){
         currPosition = START_EAST;
-        sprite = new olc::Sprite("./source/assets/vehicles/hatchbackSports_E.png");
+        sprite = generateRandomCar(crossingData.direction);
     } else {
         currPosition = START_WEST;
-        sprite = new olc::Sprite("./source/assets/vehicles/hatchbackSports_W.png"); //todo use other cars
+        sprite = generateRandomCar(crossingData.direction);
     }
     currentPathIndex = 0;
     state = CarState::HIDDEN;
@@ -62,6 +64,36 @@ Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_
 
 Car::~Car() {} // todo clean up
 
+olc::Sprite* Car::generateRandomCar(Direction direction) {
+    std::random_device rand;
+    std::mt19937 gen(rand());
+    std::uniform_int_distribution<int> distrib(1, 4);
+
+    int randomNumber = distrib(gen);
+
+    std::string imagePath = "./source/assets/vehicles/";
+
+    switch (randomNumber) {
+        case 1:
+            imagePath += (direction == Direction::EAST) ? "hatchbackSports_E.png" : "hatchbackSports_W.png";
+            break;
+        case 2:
+            imagePath += (direction == Direction::EAST) ? "sedan_E.png" : "sedan_W.png";
+            break;
+        case 3:
+            imagePath += (direction == Direction::EAST) ? "truck_E.png" : "truck_W.png";
+            break;
+        case 4:
+            imagePath += (direction == Direction::EAST) ? "van_E.png" : "van_W.png";
+            break;
+        default:
+            imagePath += (direction == Direction::EAST) ? "hatchbackSports_E.png" : "hatchbackSports_W.png";
+            break;
+    }
+
+    olc::Sprite* randomSprite = new olc::Sprite(imagePath);
+    return randomSprite;
+}
 void Car::update(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime) {
     updateState(currentTime);
     updatePosition(elapsedTime);
