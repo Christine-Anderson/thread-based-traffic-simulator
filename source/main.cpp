@@ -12,7 +12,7 @@ using namespace traffic;
 
 class RenderSimulation : public olc::PixelGameEngine {
     public:
-        RenderSimulation(Statistics* simStats) : simStats(simStats) {
+        RenderSimulation() {
             sAppName = "RenderSimulation";
         }
 
@@ -22,6 +22,9 @@ class RenderSimulation : public olc::PixelGameEngine {
         olc::Decal* roadDecal = nullptr;
 
 	bool OnUserCreate() override {
+        TrafficSimulator trafficSimulator(5, 5, false, false); //todo what can be passed in
+        simStats = trafficSimulator.runSimulation();
+
 		roadSprite = new olc::Sprite("./source/assets/road.png");
 		roadDecal = new olc::Decal(roadSprite);
 
@@ -106,10 +109,7 @@ class RenderSimulation : public olc::PixelGameEngine {
 
 
 int main() {
-	TrafficSimulator trafficSimulator(5, 5, false, false);
-	Statistics* simStats = trafficSimulator.runSimulation();
-
-	RenderSimulation simulation(simStats);
+	RenderSimulation simulation;
 	if (simulation.Construct(1000, 700, 1, 1))
 		simulation.Start();
 

@@ -9,13 +9,16 @@
 #include "street.h"
 #include "statistics.h"
 #include "trafficDirector.h" //todo rename
+#include "trafficManagementContext.h"
+#include "firstInFirstOut.h"
 #include "../definitions.h"
 
 namespace traffic {
     class TrafficSimulator { // todo Thread scheduling simulator
         public:
             Statistics* stats;
-            Street* street;
+            // Street* street;
+            TrafficManagementContext* context;
             std::vector<std::thread> cars;
 
             TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector); // todo need to add in the vars we want user to be able to change
@@ -33,7 +36,10 @@ namespace traffic {
     };
     
     TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) :
-    stats(new Statistics()), street(new Street(stats)), numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
+     /*street(new Street(stats)),*/ numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
+        stats = new Statistics();
+        context = new TrafficManagementContext(std::make_unique<FirstInFirstOut>(stats));
+
         this->hasPedestrians = hasPedestrians; // todo haven't done yet
         if (hasTrafficDirector) {
             this->trafficDirector = new TrafficDirector();
@@ -54,7 +60,8 @@ namespace traffic {
 
     void TrafficSimulator::createCars(int numCars, Direction direction) {
         for(int i = 0; i < numCars; i++) {
-            cars.emplace_back(&Street::enterStreet, street, direction);
+            // cars.emplace_back(&Street::enterStreet, street, direction);
+            cars.emplace_back(&TrafficManagementContext::enterStreet, context, direction);
         }
     }
 

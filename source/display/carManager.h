@@ -39,7 +39,8 @@ class CarManager {
         void decrementCarsWaiting(Direction direction);
 };
 
-CarManager::CarManager(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, Statistics* simStats) : engine(engine), startTime(startTime), simStats(simStats), carsWaitingEast(0), carsWaitingWest(0), areCarsDoneEast(false), areCarsDoneWest(false) {}
+CarManager::CarManager(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, Statistics* simStats)
+    : engine(engine), startTime(startTime), simStats(simStats), carsWaitingEast(0), carsWaitingWest(0), areCarsDoneEast(false), areCarsDoneWest(false) {}
 
 CarManager::~CarManager() {} // todo clean up
 
@@ -73,7 +74,7 @@ void CarManager::updateCarsPerDirection(std::chrono::high_resolution_clock::time
         Direction direction = cars[i]->getDirection();
         CarState state = cars[i]->getState();
 
-        if (state == WAITING_HIDDEN || state == WAITING_VISIBLE) {
+        if (state == WAITING_HIDDEN || state == WAITING_VISIBLE) { //todo refactor
             carsWaiting++;
         }
         
@@ -100,40 +101,6 @@ void CarManager::updateCarsPerDirection(std::chrono::high_resolution_clock::time
 bool CarManager::areCarsDone() { 
     return areCarsDoneEast && areCarsDoneWest;
 }
-
-// void CarManager::updateCarsWaiting(CarState prevState, CarState currState, Direction direction) {
-//     if (prevState == CarState::HIDDEN && currState == CarState::WAITING_HIDDEN) {
-//         incrementCarsWaiting(direction);
-//     } else if (prevState == CarState::WAITING_VISIBLE && currState == CarState::CROSSING) {
-//         decrementCarsWaiting(direction);
-//     }
-// }
-
-// void CarManager::incrementCarsWaiting(Direction direction) {
-//     switch (direction){
-//         case Direction::EAST:
-//             carsWaitingEast++;
-//             break;
-//         case Direction::WEST:
-//             carsWaitingWest++;
-//             break;
-//         default:
-//             break;
-//     }
-// }
-
-// void CarManager::decrementCarsWaiting(Direction direction) {
-//     switch (direction){
-//         case Direction::EAST:
-//             carsWaitingEast--;
-//             break;
-//         case Direction::WEST:
-//             carsWaitingWest--;
-//             break;
-//         default:
-//             break;
-//     }
-// }
 
 int CarManager::getCarsWaiting(Direction direction) {
     switch (direction){
