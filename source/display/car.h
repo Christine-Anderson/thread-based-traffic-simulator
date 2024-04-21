@@ -50,7 +50,7 @@ class Car {
 
 Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData) 
     : engine(engine), startTime(startTime), normalizeStartTimeTo(normalizeStartTimeTo), carId(carId), crossingData(crossingData) {
-    if(crossingData.direction == Direction::EAST){
+    if (crossingData.direction == Direction::EAST){
         currPosition = START_EAST;
         sprite = generateRandomCar(crossingData.direction);
     } else {
@@ -63,7 +63,10 @@ Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_
     speed = DEFAULT_SPEED;
 }
 
-Car::~Car() {} // todo clean up
+Car::~Car() {
+    delete sprite;
+    delete decal;
+}
 
 olc::Sprite* Car::generateRandomCar(Direction direction) {
     std::random_device rand;

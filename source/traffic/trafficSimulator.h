@@ -6,7 +6,6 @@
 #include <mutex>
 #include <vector>
 
-#include "street.h"
 #include "statistics.h"
 #include "trafficDirector.h" //todo rename
 #include "trafficManagementContext.h"
@@ -17,13 +16,13 @@ namespace traffic {
     class TrafficSimulator { // todo Thread scheduling simulator
         public:
             Statistics* stats;
-            // Street* street;
             TrafficManagementContext* context;
             std::vector<std::thread> cars;
 
             TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector); // todo need to add in the vars we want user to be able to change
             ~TrafficSimulator();
             Statistics* runSimulation();
+            void setTrafficManagementStrategy(Strategy strategy);
 
         private:
             TrafficDirector* trafficDirector;
@@ -35,8 +34,8 @@ namespace traffic {
             void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) :
-     /*street(new Street(stats)),*/ numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
+    TrafficSimulator::TrafficSimulator(int numCarsEast, int numCarsWest, bool hasPedestrians, bool hasTrafficDirector) 
+        : numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
         stats = new Statistics();
         context = new TrafficManagementContext(std::make_unique<FirstInFirstOut>(stats));
 
@@ -58,9 +57,19 @@ namespace traffic {
         return stats;
     }
 
+    void TrafficSimulator::setTrafficManagementStrategy(Strategy strategy) {
+        switch(strategy) {
+            case Strategy::FIRST_IN_FIRST_OUT:
+                context->set_strategy(std::make_unique<FirstInFirstOut>());
+                break;
+            default:
+                context->set_strategy(std::make_unique<FirstInFirstOut>());
+                break;
+        }
+    }
+
     void TrafficSimulator::createCars(int numCars, Direction direction) {
         for(int i = 0; i < numCars; i++) {
-            // cars.emplace_back(&Street::enterStreet, street, direction);
             cars.emplace_back(&TrafficManagementContext::enterStreet, context, direction);
         }
     }

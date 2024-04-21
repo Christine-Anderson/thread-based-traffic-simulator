@@ -42,7 +42,17 @@ class CarManager {
 CarManager::CarManager(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, Statistics* simStats)
     : engine(engine), startTime(startTime), simStats(simStats), carsWaitingEast(0), carsWaitingWest(0), areCarsDoneEast(false), areCarsDoneWest(false) {}
 
-CarManager::~CarManager() {} // todo clean up
+CarManager::~CarManager() {
+    for (auto& car : carsEast) {
+        delete car;
+    }
+    carsEast.clear();
+
+    for (auto& car : carsWest) {
+        delete car;
+    }
+    carsWest.clear();
+} 
 
 void CarManager::createCars() {
     const std::vector<std::thread::id>& crossingOrder = simStats->getCrossingOrder();

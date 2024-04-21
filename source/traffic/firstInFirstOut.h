@@ -31,9 +31,7 @@ namespace traffic {
     
     FirstInFirstOut::FirstInFirstOut(Statistics* stats) : stats(stats), numCarsOnStreet(0) {}
 
-    FirstInFirstOut::~FirstInFirstOut() {
-        // todo clean up
-    }
+    FirstInFirstOut::~FirstInFirstOut() {}
 
     void FirstInFirstOut::enterStreet(Direction carDirection) {
         stats->recordStats(std::this_thread::get_id(), START, carDirection, std::chrono::high_resolution_clock::now());
