@@ -9,12 +9,12 @@
 
 class Car {
     const olc::vf2d OFFSET = {256, 256};
-    const olc::vf2d START_EAST = {-256, 360};
-    const olc::vf2d START_WEST = {1256, 230};
-    const std::vector<olc::vf2d> WAIT_TO_GO_EAST = {{125, 360}};
-    const std::vector<olc::vf2d> WAIT_TO_GO_WEST = {{900, 230}};
-    const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 360}};
-    const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 360}, {350, 360}, {200, 230}, {-256, 230}};
+    const olc::vf2d START_EAST = {-256, 490};
+    const olc::vf2d START_WEST = {1256, 360};
+    const std::vector<olc::vf2d> WAIT_TO_GO_EAST = {{125, 490}};
+    const std::vector<olc::vf2d> WAIT_TO_GO_WEST = {{900, 360}};
+    const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 490}};
+    const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 490}, {350, 490}, {200, 360}, {-256, 360}};
     const float DEFAULT_SPEED = 500.0;
 
     public:
