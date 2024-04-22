@@ -16,6 +16,7 @@ namespace traffic {
             FirstInFirstOut(Statistics* stats);
             ~FirstInFirstOut();
             void enterStreet(Direction carDirection) override;
+            void changeStreetDirection() override;
         
         private:
             Statistics* stats;
@@ -73,6 +74,10 @@ namespace traffic {
     void FirstInFirstOut::assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
         assert(numCarsOnStreet <= MAX_OCCUPANCY);
         assert(carDirection == streetDirection);
+    }
+
+    void FirstInFirstOut::changeStreetDirection() {
+        // do nothing
     }
 }
 

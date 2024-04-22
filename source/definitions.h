@@ -17,6 +17,11 @@ enum CarState {
     DONE
 };
 
+enum Strategy {
+    FIRST_IN_FIRST_OUT,
+    TIME_BASED_PREEMPTION
+};
+
 std::string directionToString(Direction direction) {
     switch(direction) {
         case Direction::EAST:

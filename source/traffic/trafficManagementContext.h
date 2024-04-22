@@ -13,6 +13,7 @@ namespace traffic {
             explicit TrafficManagementContext(std::unique_ptr<TrafficManagementStrategy> strategy = nullptr);
             void set_strategy(std::unique_ptr<TrafficManagementStrategy> strategy);
             void enterStreet(Direction direction);
+            void changeStreetDirection();
         
         private:
             std::unique_ptr<TrafficManagementStrategy> strategy_;
@@ -27,10 +28,13 @@ namespace traffic {
     
     void TrafficManagementContext::enterStreet(Direction direction) {
         if (strategy_) {
-            std::cout << "Context: Strategy set\n"; //todo delete
             strategy_->enterStreet(direction);
-        } else {
-            std::cout << "Context: Strategy isn't set\n";
+        }
+    }
+
+    void TrafficManagementContext::changeStreetDirection() {
+        if (strategy_) {
+            strategy_->changeStreetDirection();
         }
     }
 }

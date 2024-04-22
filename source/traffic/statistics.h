@@ -25,7 +25,7 @@ namespace traffic {
             void printData();
             const std::vector<std::thread::id>& getCrossingOrder() const;
             const std::unordered_map<std::thread::id, crossingDatum>& getCrossingData() const;
-            // const int (&getOccupancy())[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1];
+            // const int (&getOccupancy())[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1]; todo for stats screen
 
         private:
             std::chrono::high_resolution_clock::time_point startTime;
@@ -39,8 +39,7 @@ namespace traffic {
     Statistics::Statistics() : startTime(std::chrono::high_resolution_clock::now()), occupancy{{0}} {
     }
 
-    Statistics::~Statistics() {
-    }
+    Statistics::~Statistics() {}
 
     void Statistics::recordStats(std::thread::id threadId, Time timeToUpdate, Direction direction, std::chrono::time_point<ClockType> time) {
         std::lock_guard<std::mutex> statsLock(statsMutex);
@@ -99,7 +98,7 @@ namespace traffic {
         return crossingData;
     }
 
-    // const int (&getOccupancy())[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1] {
+    // const int (&getOccupancy())[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1] { todo for stats screen
     //     return occupancy;
     // }
 }

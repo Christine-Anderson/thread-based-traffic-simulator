@@ -22,10 +22,10 @@ class RenderSimulation : public olc::PixelGameEngine {
         olc::Decal* roadDecal = nullptr;
 
 	bool OnUserCreate() override {
-        TrafficSimulator trafficSimulator(5, 5, false, false); //todo what can be passed in
+        TrafficSimulator trafficSimulator(Strategy::TIME_BASED_PREEMPTION, 3, 3, false); //todo what can be passed in
         simStats = trafficSimulator.runSimulation();
 
-		roadSprite = new olc::Sprite("./source/assets/road.png");
+		roadSprite = new olc::Sprite("./source/assets/road2.png");
 		roadDecal = new olc::Decal(roadSprite);
 
         carManager = new CarManager(this, std::chrono::high_resolution_clock::now(), simStats);
@@ -40,8 +40,8 @@ class RenderSimulation : public olc::PixelGameEngine {
 
         this->DrawStringDecal({10, 10}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()), olc::WHITE, {2.0, 2.0}); //todo delete
         // this->DrawRectDecal({ static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, {512, 512}, olc::RED);
-        this->DrawStringDecal({20, 150}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::EAST)), olc::WHITE, {2.0, 2.0});
-        this->DrawStringDecal({800, 150}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::WEST)), olc::WHITE, {2.0, 2.0});
+        this->DrawStringDecal({20, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::EAST)), olc::WHITE, {2.0, 2.0});
+        this->DrawStringDecal({800, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::WEST)), olc::WHITE, {2.0, 2.0});
 
         carManager->updateCars(std::chrono::high_resolution_clock::now(), elapsedTime);
 

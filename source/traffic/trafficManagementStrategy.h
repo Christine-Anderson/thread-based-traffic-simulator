@@ -8,6 +8,7 @@ namespace traffic {
         public:
             virtual ~TrafficManagementStrategy() = default;
             virtual void enterStreet(Direction carDirection) = 0;
+            virtual void changeStreetDirection() = 0;
     };
 }
 
