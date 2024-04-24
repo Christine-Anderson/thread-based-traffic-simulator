@@ -20,7 +20,7 @@ namespace traffic {
             TrafficManagementContext* context;
             std::vector<std::thread> cars;
 
-            TrafficSimulator(Strategy strategy, int numCarsEast, int numCarsWest, bool hasPedestrians); // todo need to add in the vars we want user to be able to change
+            TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians); // todo need to add in the vars we want user to be able to change
             ~TrafficSimulator();
             Statistics* runSimulation();
             void setTrafficManagementStrategy(Strategy strategy);
@@ -28,17 +28,16 @@ namespace traffic {
         private:
             TrafficDirector* trafficDirector;
             Strategy strategy;
-            int numCarsEast;
-            int numCarsWest;
+            int numCars;
             bool hasPedestrians;
 
             void initTrafficManagementStrategy(Strategy strategy);
-            void startCars(int numCars, Direction direction);
+            void startCars(int numCars);
             void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCarsEast, int numCarsWest, bool hasPedestrians) // todo random number of cars of east and west
-        : strategy(strategy), hasPedestrians(hasPedestrians), numCarsEast(numCarsEast), numCarsWest(numCarsWest) {
+    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians) // todo random number of cars of east and west
+    : strategy(strategy), hasPedestrians(hasPedestrians), numCars(numCars) {
         initTrafficManagementStrategy(strategy);
         trafficDirector = (strategy == Strategy::TIME_BASED_PREEMPTION) ? new TrafficDirector(context, 1000) : nullptr;
     }
@@ -55,8 +54,7 @@ namespace traffic {
         if (strategy == Strategy::TIME_BASED_PREEMPTION) {
             trafficDirector->start();
         }
-        startCars(numCarsEast, Direction::EAST); // todo loop sim for more stats?
-        startCars(numCarsWest, Direction::WEST);
+        startCars(numCars); // todo loop sim for more stats?
         waitForSimToEnd();
         if (strategy == Strategy::TIME_BASED_PREEMPTION) {
             trafficDirector->stop();
@@ -103,8 +101,13 @@ namespace traffic {
         }
     }
 
-    void TrafficSimulator::startCars(int numCars, Direction direction) {
-        for(int i = 0; i < numCars; i++) {
+    void TrafficSimulator::startCars(int numCars) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> dirDist(0, 1);
+
+        for (int i = 0; i < numCars; ++i) {
+            Direction direction = (dirDist(gen) == 0) ? Direction::EAST : Direction::WEST;
             cars.emplace_back(&TrafficManagementContext::enterStreet, context, direction);
         }
     }
