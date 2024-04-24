@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <random>
+#include <string>
+#include <cmath>
 
 #include "../lib/olcPixelGameEngine.h"
 #include "../definitions.h"
@@ -16,6 +18,8 @@ class Car {
     const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 490}};
     const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 490}, {350, 490}, {200, 360}, {-256, 360}};
     const float DEFAULT_SPEED = 500.0;
+    std::string IMAGES_FOLDER = "./source/assets/vehicles/";
+    const std::vector<std::string> CAR_TYPES = { "hatchbackSports", "sedan", "truck", "van"};
 
     public:
         Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData);
@@ -32,70 +36,59 @@ class Car {
         CarState state;
         crossingDatum crossingData;
         olc::vf2d currPosition;
-        olc::Sprite *sprite = nullptr;
-        olc::Decal *decal = nullptr;
+        std::map<std::string, olc::Decal*> carDecals;
         std::chrono::duration<double> normalizeStartTimeTo;
         size_t currentPathIndex;
         std::vector<olc::vf2d> path;
         float speed;
+        int carType;
 
-        olc::Sprite* generateRandomCar(Direction direction);
+        std::map<std::string, olc::Decal*> generateCarDecals(Direction direction);
         void updateState(std::chrono::high_resolution_clock::time_point currentTime);
         void initState(CarState state);
         void updatePosition(float elapsedTime);
-        void render(olc::vf2d currPosition, float elapsedTime);
-        void moveAlongPath(const std::vector<olc::vf2d>& path, float speed, float elapsedTime);
+        void render(olc::vf2d currPosition, std::string cardinalDirection, float elapsedTime);
+        std::string moveAlongPath(const std::vector<olc::vf2d>& path, float speed, float elapsedTime);
+        std::string vectorToCardinalDirection(const olc::vf2d& directionVector);
         float calculateAverageSpeedAlongPath(const std::vector<olc::vf2d>& path);
 };
 
 Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData) 
-    : engine(engine), startTime(startTime), normalizeStartTimeTo(normalizeStartTimeTo), carId(carId), crossingData(crossingData) {
-    if (crossingData.direction == Direction::EAST){
-        currPosition = START_EAST;
-        sprite = generateRandomCar(crossingData.direction);
-    } else {
-        currPosition = START_WEST;
-        sprite = generateRandomCar(crossingData.direction);
-    }
+: engine(engine), startTime(startTime), normalizeStartTimeTo(normalizeStartTimeTo), carId(carId), crossingData(crossingData) {
+    currPosition = (crossingData.direction == Direction::EAST) ? currPosition = START_EAST : currPosition = START_WEST;
+    carDecals = generateCarDecals(crossingData.direction);
     currentPathIndex = 0;
     state = CarState::HIDDEN;
-    decal = new olc::Decal(sprite);
     speed = DEFAULT_SPEED;
 }
 
 Car::~Car() {
-    delete sprite;
-    delete decal;
+    for (auto& pair : carDecals) {
+        delete pair.second;
+    }
 }
 
-olc::Sprite* Car::generateRandomCar(Direction direction) {
+std::map<std::string, olc::Decal*> Car::generateCarDecals(Direction direction) {
     std::random_device rand;
     std::mt19937 gen(rand());
-    std::uniform_int_distribution<int> distrib(1, 4);
+    std::uniform_int_distribution<int> distrib(0, CAR_TYPES.size());
+    carType = distrib(gen);
+    
+    std::map<std::string, olc::Decal*> carSpritesDecal;
+    std::string imagePath = IMAGES_FOLDER + CAR_TYPES[carType];
 
-    int randomNumber = distrib(gen);
-    std::string imagePath = "./source/assets/vehicles/";
+    carSpritesDecal["E"] = new olc::Decal(new olc::Sprite(imagePath + "_N.png"));
+    carSpritesDecal["W"] = new olc::Decal(new olc::Sprite(imagePath + "_S.png"));
+    carSpritesDecal["S"] = new olc::Decal(new olc::Sprite(imagePath + "_E.png"));
+    carSpritesDecal["N"] = new olc::Decal(new olc::Sprite(imagePath + "_W.png"));
+    carSpritesDecal["SE"] = new olc::Decal(new olc::Sprite(imagePath + "_NE.png"));
+    carSpritesDecal["NE"] = new olc::Decal(new olc::Sprite(imagePath + "_NW.png"));
+    carSpritesDecal["SW"] = new olc::Decal(new olc::Sprite(imagePath + "_SE.png"));
+    carSpritesDecal["NW"] = new olc::Decal(new olc::Sprite(imagePath + "_SW.png"));
 
-    switch (randomNumber) {
-        case 1:
-            imagePath += (direction == Direction::EAST) ? "hatchbackSports_E.png" : "hatchbackSports_W.png";
-            break;
-        case 2:
-            imagePath += (direction == Direction::EAST) ? "sedan_E.png" : "sedan_W.png";
-            break;
-        case 3:
-            imagePath += (direction == Direction::EAST) ? "truck_E.png" : "truck_W.png";
-            break;
-        case 4:
-            imagePath += (direction == Direction::EAST) ? "van_E.png" : "van_W.png";
-            break;
-        default:
-            imagePath += (direction == Direction::EAST) ? "hatchbackSports_E.png" : "hatchbackSports_W.png";
-            break;
-    }
-
-    return new olc::Sprite(imagePath);
+    return carSpritesDecal;
 }
+
 void Car::update(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime) {
     updateState(currentTime);
     updatePosition(elapsedTime);
@@ -144,32 +137,35 @@ void Car::initState(CarState state) {
 }
 
 void Car::updatePosition(float elapsedTime) {
+    std::string cardinalDirection;
+
     switch(state) {
         case CarState::WAITING_VISIBLE:
         case CarState::CROSSING:
-            moveAlongPath(path, speed, elapsedTime);
-            render(currPosition, elapsedTime);
+            cardinalDirection = moveAlongPath(path, speed, elapsedTime);
+            render(currPosition, cardinalDirection, elapsedTime);
             break;
         default:
             break;
     }
 }
 
-void Car::render(olc::vf2d currPosition, float elapsedTime) {
-    engine->DrawDecal(currPosition - OFFSET, decal);
+void Car::render(olc::vf2d currPosition, std::string cardinalDirection, float elapsedTime) {
+    engine->DrawDecal(currPosition - OFFSET, carDecals[cardinalDirection]);
 }
-//todo refactor below out?
-void Car::moveAlongPath(const std::vector<olc::vf2d>& path, float speed, float elapsedTime) {
+
+std::string Car::moveAlongPath(const std::vector<olc::vf2d>& path, float speed, float elapsedTime) {
     if(currentPathIndex >= path.size()) {
-        return;
+        return (crossingData.direction == Direction::EAST)? "E": "W";
     }
 
     olc::vf2d distanceToTarget = path[currentPathIndex] - currPosition;
     olc::vf2d distanceToMove = {0.0, 0.0};
+    olc::vf2d directionVector = distanceToTarget.norm();
     // std::cout << "distanceToTarget " << std::to_string(distanceToTarget.x) << std::to_string(distanceToTarget.y) <<std::endl;
 
     if(distanceToTarget.mag2() > 0.0) {
-        distanceToMove = distanceToTarget.norm() * speed * elapsedTime;
+        distanceToMove = directionVector * speed * elapsedTime;
         // std::cout << "distanceToMove " << std::to_string(distanceToMove.x) << std::to_string(distanceToMove.y) << std::endl;
     }
 
@@ -179,6 +175,40 @@ void Car::moveAlongPath(const std::vector<olc::vf2d>& path, float speed, float e
     } 
 
     currPosition += distanceToMove;
+
+    return vectorToCardinalDirection(directionVector);
+}
+
+std::string Car::vectorToCardinalDirection(const olc::vf2d& directionVector) {
+    float angleRadians = std::atan2(directionVector.y, directionVector.x);
+    float angleDegrees = angleRadians * (180.0f / M_PI);
+
+    // Normalize angle to be within [0, 360) degrees
+    if (angleDegrees < 0.0f) {
+        angleDegrees += 360.0f;
+    }
+
+    std::string cardinalDirection;
+
+    if (angleDegrees >= 337.5f || angleDegrees < 22.5f) {
+        cardinalDirection = "E";
+    } else if (angleDegrees >= 22.5f && angleDegrees < 67.5f) {
+        cardinalDirection = "SE";
+    } else if (angleDegrees >= 67.5f && angleDegrees < 112.5f) {
+        cardinalDirection = "N";
+    } else if (angleDegrees >= 112.5f && angleDegrees < 157.5f) {
+        cardinalDirection = "SW";
+    } else if (angleDegrees >= 157.5f && angleDegrees < 202.5f) {
+        cardinalDirection = "W";
+    } else if (angleDegrees >= 202.5f && angleDegrees < 247.5f) {
+        cardinalDirection = "NW";
+    } else if (angleDegrees >= 247.5f && angleDegrees < 292.5f) {
+        cardinalDirection = "S";
+    } else if (angleDegrees >= 292.5f && angleDegrees < 337.5f) {
+        cardinalDirection = "NE";
+    }
+
+    return cardinalDirection;
 }
 
 float Car::calculateAverageSpeedAlongPath(const std::vector<olc::vf2d>& path) {
