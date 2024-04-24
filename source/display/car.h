@@ -19,7 +19,7 @@ class Car {
     const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 490}, {350, 490}, {200, 360}, {-256, 360}};
     const float DEFAULT_SPEED = 500.0;
     std::string IMAGES_FOLDER = "./source/assets/vehicles/";
-    const std::vector<std::string> CAR_TYPES = { "hatchbackSports", "sedan", "truck", "van"};
+    const std::vector<std::string> CAR_TYPES = { "hatchbackSports", "sedan", "truck", "van", "sedanSports", "suv", "suvLuxury", "taxi", "truckFlat"};
 
     public:
         Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData);
