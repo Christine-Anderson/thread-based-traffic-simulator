@@ -44,7 +44,7 @@ namespace traffic {
         while (running) {
             auto startTime = std::chrono::steady_clock::now();
 
-            while (true) {
+            while (running) {
                 auto currentTime = std::chrono::steady_clock::now();
                 auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
                 int remainingTime = intervalMillisec - static_cast<int>(elapsedTime);

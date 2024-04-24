@@ -22,7 +22,7 @@ class RenderSimulation : public olc::PixelGameEngine {
         olc::Decal* roadDecal = nullptr;
 
 	bool OnUserCreate() override {
-        TrafficSimulator trafficSimulator(Strategy::FIRST_IN_FIRST_OUT, 5, 5, false); //todo what can be passed in
+        TrafficSimulator trafficSimulator(Strategy::FIRST_IN_FIRST_OUT, 30 , false); //todo what can be passed in
         simStats = trafficSimulator.runSimulation();
 
 		roadSprite = new olc::Sprite("./source/assets/road2.png");

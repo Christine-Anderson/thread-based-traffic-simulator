@@ -79,7 +79,7 @@ namespace traffic {
         std::cout << std::this_thread::get_id() << " driveThroughStreet: " << numCarsOnStreet << " cars on street going " << directionToString(streetDirection) << std::endl;
 
         stats->recordStats(std::this_thread::get_id(), ENTER, carDirection, std::chrono::high_resolution_clock::now());
-        numCarsOnStreet++;
+        numCarsOnStreet++
         assertStreetOccupancyConstraints(streetLock, carDirection);
         stats->recordOccupancy(numCarsOnStreet, carDirection);
 
