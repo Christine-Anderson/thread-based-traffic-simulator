@@ -1,5 +1,5 @@
-#ifndef FIRST_IN_FIRST_OUT_H
-#define FIRST_IN_FIRST_OUT_H
+#ifndef FIRST_COME_FIRST_SERVED_H
+#define FIRST_COME_FIRST_SERVED_H
 
 #include <iostream>
 #include <thread>
@@ -11,10 +11,10 @@
 #include "../definitions.h"
 
 namespace traffic {
-    class FirstInFirstOut : public TrafficManagementStrategy {
+    class FirstComeFirstServed : public TrafficManagementStrategy {
         public:
-            FirstInFirstOut(Statistics* stats);
-            ~FirstInFirstOut();
+            FirstComeFirstServed(Statistics* stats);
+            ~FirstComeFirstServed();
             void enterStreet(Direction carDirection) override;
             void changeStreetDirection() override;
         
@@ -30,11 +30,11 @@ namespace traffic {
             void assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
     };
     
-    FirstInFirstOut::FirstInFirstOut(Statistics* stats) : stats(stats), numCarsOnStreet(0) {}
+    FirstComeFirstServed::FirstComeFirstServed(Statistics* stats) : stats(stats), numCarsOnStreet(0) {}
 
-    FirstInFirstOut::~FirstInFirstOut() {}
+    FirstComeFirstServed::~FirstComeFirstServed() {}
 
-    void FirstInFirstOut::enterStreet(Direction carDirection) {
+    void FirstComeFirstServed::enterStreet(Direction carDirection) {
         stats->recordStats(std::this_thread::get_id(), START, carDirection, std::chrono::high_resolution_clock::now());
 
         // std::cout << threadId << " waiting to go " << directionToString(carDirection) << std::endl;
@@ -48,7 +48,7 @@ namespace traffic {
         }
     }
 
-    void FirstInFirstOut::driveThroughStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
+    void FirstComeFirstServed::driveThroughStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
         stats->recordStats(std::this_thread::get_id(), ENTER, carDirection, std::chrono::high_resolution_clock::now());
 
         numCarsOnStreet++;
@@ -62,21 +62,21 @@ namespace traffic {
         leaveStreet(streetLock, carDirection);
     }
 
-    void FirstInFirstOut::waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
+    void FirstComeFirstServed::waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
         // std::cout << threadId << " waiting to go " << directionToString(carDirection) << std::endl;
     }
 
-    void FirstInFirstOut::leaveStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
+    void FirstComeFirstServed::leaveStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
         stats->recordStats(std::this_thread::get_id(), LEAVE, carDirection, std::chrono::high_resolution_clock::now());
         numCarsOnStreet--;
     }
 
-    void FirstInFirstOut::assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
+    void FirstComeFirstServed::assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
         assert(numCarsOnStreet <= MAX_OCCUPANCY);
         assert(carDirection == streetDirection);
     }
 
-    void FirstInFirstOut::changeStreetDirection() {
+    void FirstComeFirstServed::changeStreetDirection() {
         // do nothing
     }
 }
