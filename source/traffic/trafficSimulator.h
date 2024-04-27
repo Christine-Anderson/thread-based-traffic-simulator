@@ -9,7 +9,7 @@
 #include "statistics.h"
 #include "trafficDirector.h" //todo rename
 #include "trafficManagementContext.h"
-#include "firstInFirstOut.h"
+#include "firstComeFirstServed.h"
 #include "timeBasedPreemption.h"
 #include "../definitions.h"
 
@@ -70,14 +70,14 @@ namespace traffic {
         stats = new Statistics();
 
         switch(strategy) {
-            case Strategy::FIRST_IN_FIRST_OUT:
-                context->set_strategy(std::make_unique<FirstInFirstOut>(stats));
+            case Strategy::FIRST_COME_FIRST_SERVED:
+                context->set_strategy(std::make_unique<FirstComeFirstServed>(stats));
                 break;
             case Strategy::TIME_BASED_PREEMPTION:
                 context->set_strategy(std::make_unique<TimeBasedPreemption>(stats));
                 break;
             default:
-                context->set_strategy(std::make_unique<FirstInFirstOut>(stats));
+                context->set_strategy(std::make_unique<FirstComeFirstServed>(stats));
                 break;
         }
     }
@@ -89,8 +89,8 @@ namespace traffic {
         stats = new Statistics();
 
         switch(strategy) {
-            case Strategy::FIRST_IN_FIRST_OUT:
-                context = new TrafficManagementContext(std::make_unique<FirstInFirstOut>(stats));
+            case Strategy::FIRST_COME_FIRST_SERVED:
+                context = new TrafficManagementContext(std::make_unique<FirstComeFirstServed>(stats));
                 break;
             case Strategy::TIME_BASED_PREEMPTION:
                 context = new TrafficManagementContext(std::make_unique<TimeBasedPreemption>(stats));

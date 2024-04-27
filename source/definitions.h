@@ -9,6 +9,12 @@ enum Direction {
     NUM_DIRECTIONS
 };
 
+enum SimulationState {
+    MENU,
+    SIMULATION_RUNNING,
+    SIMULATION_DONE
+};
+
 enum CarState {
     HIDDEN,
     WAITING_HIDDEN,
@@ -18,7 +24,7 @@ enum CarState {
 };
 
 enum Strategy {
-    FIRST_IN_FIRST_OUT,
+    FIRST_COME_FIRST_SERVED,
     TIME_BASED_PREEMPTION
 };
 
