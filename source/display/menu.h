@@ -66,6 +66,8 @@ void Menu::handleUserInput() {
     int mouseY = engine->GetMouseY();
     bool mouseClicked = engine->GetMouse(0).bPressed;
 
+    data.runSimulation = false;
+
     if (mouseClicked && buttonClicked(mouseX, mouseY, FIRST_COME_FIRST_SERVED_BUTTON_POSITION, LARGE_BUTTON_SIZE)) {
         data.threadSchedulingStrategy = Strategy::FIRST_COME_FIRST_SERVED;
         strategyButton = FIRST_COME_FIRST_SERVED_BUTTON_POSITION;

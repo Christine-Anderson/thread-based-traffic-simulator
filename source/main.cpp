@@ -43,6 +43,7 @@ class RenderSimulation : public olc::PixelGameEngine {
             case SimulationState::MENU:
                 menuData = menu->update();
                 if (menuData.runSimulation) {
+                    menuData.runSimulation = false;
                     startSimulation(menuData.threadSchedulingStrategy, menuData.numThreads);
                     simState = SimulationState::SIMULATION_RUNNING;
                 }
@@ -59,6 +60,10 @@ class RenderSimulation : public olc::PixelGameEngine {
                 break;
             case SimulationState::SIMULATION_DONE:
                 this->DrawStringDecal({350, 300}, "Simulation complete!", olc::WHITE, {2.0, 2.0});
+                this->DrawStringDecal({260, 640}, "- Press spacebar to continue -", olc::WHITE, {2.0, 2.0});
+                if (GetKey(olc::Key::SPACE).bPressed) {
+                    simState = SimulationState::MENU;
+                }
                 break;
         }
 		
