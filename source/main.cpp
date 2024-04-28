@@ -5,6 +5,7 @@
 
 #include "lib/olcPixelGameEngine.h"
 #include "display/carManager.h"
+#include "display/menu.h"
 #include "traffic/trafficSimulator.h"
 #include "definitions.h"
 
@@ -16,97 +17,65 @@ class RenderSimulation : public olc::PixelGameEngine {
             sAppName = "RenderSimulation";
         }
 
-        Statistics* simStats;
+        Menu* menu;
+        Statistics* simStats; //todo move private?
         CarManager* carManager;
-        olc::Sprite* roadSprite = nullptr;
+
+    private:
         olc::Decal* roadDecal = nullptr;
+        SimulationState simState;
+        
 
 	bool OnUserCreate() override {
-        TrafficSimulator trafficSimulator(Strategy::FIRST_IN_FIRST_OUT, 30 , false); //todo what can be passed in
-        simStats = trafficSimulator.runSimulation();
-
-		roadSprite = new olc::Sprite("./source/assets/road2.png");
-		roadDecal = new olc::Decal(roadSprite);
-
-        carManager = new CarManager(this, std::chrono::high_resolution_clock::now(), simStats);
-        carManager->createCars();
+		roadDecal = new olc::Decal(new olc::Sprite("./source/assets/road2.png"));
+        menu = new Menu(this);
+        simState = SimulationState::MENU;
 
 		return true;
 	}
 
 	bool OnUserUpdate(float elapsedTime) override {
 		Clear(olc::VERY_DARK_GREY);
-		DrawDecal(olc::vf2d(0.0, 0.0), roadDecal);
+        DrawDecal(olc::vf2d(0.0, 0.0), roadDecal);
+        MenuData menuData;
 
+        switch(simState) {
+            case SimulationState::MENU:
+                menuData = menu->update();
+                if (menuData.runSimulation) {
+                    startSimulation(menuData.threadSchedulingStrategy, menuData.numThreads);
+                    simState = SimulationState::SIMULATION_RUNNING;
+                }
+                break;
+            case SimulationState::SIMULATION_RUNNING:
+                this->DrawStringDecal({20, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::EAST)), olc::WHITE, {2.0, 2.0});
+                this->DrawStringDecal({800, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::WEST)), olc::WHITE, {2.0, 2.0});
+
+                carManager->updateCars(std::chrono::high_resolution_clock::now(), elapsedTime);
+
+                if (carManager->areCarsDone()) {
+                    simState = SimulationState::SIMULATION_DONE;
+                }
+                break;
+            case SimulationState::SIMULATION_DONE:
+                this->DrawStringDecal({350, 300}, "Simulation complete!", olc::WHITE, {2.0, 2.0});
+                break;
+        }
+		
+        // this->DrawRectDecal({ 100, 100 }, {100, 50}, olc::RED);
         this->DrawStringDecal({10, 10}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()), olc::WHITE, {2.0, 2.0}); //todo delete
         // this->DrawRectDecal({ static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, {512, 512}, olc::RED);
-        this->DrawStringDecal({20, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::EAST)), olc::WHITE, {2.0, 2.0});
-        this->DrawStringDecal({800, 200}, "Waiting: " + std::to_string(carManager->getCarsWaiting(Direction::WEST)), olc::WHITE, {2.0, 2.0});
-
-        carManager->updateCars(std::chrono::high_resolution_clock::now(), elapsedTime);
-
-        if (carManager->areCarsDone()) {
-            this->DrawStringDecal({370,300}, "Simulation complete!", olc::WHITE, {2.0, 2.0});
-        }
 
 		return true;
 	}
 
-	void handleInputs(float elapsedTime) {
-	// 	float angle_increment = 0;
-	// 	olc::vf2d the_move = olc::vf2d(0.0, 0.0);
-
-	// 	if (GetKey(olc::Key::W).bHeld || GetKey(olc::Key::W).bPressed) {
-	// 		the_move += UP;
-	// 	}
-	// 	if (GetKey(olc::Key::S).bHeld || GetKey(olc::Key::S).bPressed) {
-	// 		the_move += DOWN;
-	// 	}
-	// 	if (GetKey(olc::Key::A).bHeld || GetKey(olc::Key::A).bPressed) {
-	// 		the_move += LEFT;
-	// 	}
-	// 	if (GetKey(olc::Key::D).bHeld || GetKey(olc::Key::D).bPressed) {
-	// 		the_move += RIGHT;
-	// 	}
-	// 	if (GetKey(olc::Key::E).bHeld || GetKey(olc::Key::E).bPressed) {
-	// 		angle_increment = M_PI * 0.001;
-	// 	}
-
-	// 	sq_blue.move(the_move);
-	// 	sq_blue.rotate(angle_increment);
-	// 	if(sq_blue.check_collision(sq_burg)) {
-	// 		sq_blue.move(opposite(the_move));
-	// 		sq_blue.rotate(-1 * angle_increment);
-	// 	}
-		
-
-	// 	angle_increment = 0;
-	// 	the_move = olc::vf2d(0.0, 0.0);
-	// 	if (GetKey(olc::Key::I).bHeld || GetKey(olc::Key::I).bPressed) {
-	// 		the_move += UP;
-	// 	}
-	// 	if (GetKey(olc::Key::K).bHeld || GetKey(olc::Key::K).bPressed) {
-	// 		the_move += DOWN;
-	// 	}
-	// 	if (GetKey(olc::Key::J).bHeld || GetKey(olc::Key::J).bPressed) {
-	// 		the_move += LEFT;
-	// 	}
-	// 	if (GetKey(olc::Key::L).bHeld || GetKey(olc::Key::L).bPressed) {
-	// 		the_move += RIGHT;
-	// 	}
-	// 	if (GetKey(olc::Key::O).bHeld || GetKey(olc::Key::O).bPressed) {
-	// 		angle_increment = M_PI * 0.001;
-	// 	}
-
-	// 	sq_burg.move(the_move);
-	// 	sq_burg.rotate(angle_increment);
-	// 	if(sq_burg.check_collision(sq_blue)) {
-	// 		sq_burg.move(opposite(the_move));
-	// 		sq_burg.rotate(-1 * angle_increment);
-	// 	}
-	}
+    void startSimulation(Strategy threadSchedulingStrategy, int numThreads) {
+        TrafficSimulator trafficSimulator(threadSchedulingStrategy, numThreads, false);
+        simStats = trafficSimulator.runSimulation();
+        carManager = new CarManager(this, std::chrono::high_resolution_clock::now(), simStats);
+        carManager->createCars();
+    }
 };
-
 
 int main() {
 	RenderSimulation simulation;

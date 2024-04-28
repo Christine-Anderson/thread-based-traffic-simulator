@@ -18,11 +18,11 @@ class Car {
     const std::vector<olc::vf2d> PATH_CROSSING_EAST = {{1256, 490}};
     const std::vector<olc::vf2d> PATH_CROSSING_WEST = {{700, 490}, {350, 490}, {200, 360}, {-256, 360}};
     const float DEFAULT_SPEED = 500.0;
-    std::string IMAGES_FOLDER = "./source/assets/vehicles/";
+    const std::string IMAGES_FOLDER = "./source/assets/vehicles/";
     const std::vector<std::string> CAR_TYPES = { "hatchbackSports", "sedan", "truck", "van", "sedanSports", "suv", "suvLuxury", "taxi", "truckFlat"};
 
     public:
-        Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData);
+        Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, CrossingDatum crossingData);
         ~Car();
         void update(std::chrono::high_resolution_clock::time_point currentTime, float elapsedTime);
         Direction getDirection();
@@ -34,7 +34,7 @@ class Car {
         std::chrono::high_resolution_clock::time_point startTime;
         std::thread::id carId;
         CarState state;
-        crossingDatum crossingData;
+        CrossingDatum crossingData;
         olc::vf2d currPosition;
         std::map<std::string, olc::Decal*> carDecals;
         std::chrono::duration<double> normalizeStartTimeTo;
@@ -53,7 +53,7 @@ class Car {
         float calculateAverageSpeedAlongPath(const std::vector<olc::vf2d>& path);
 };
 
-Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, crossingDatum crossingData) 
+Car::Car(olc::PixelGameEngine* engine, std::chrono::high_resolution_clock::time_point startTime, std::chrono::duration<double> normalizeStartTimeTo, std::thread::id carId, CrossingDatum crossingData) 
 : engine(engine), startTime(startTime), normalizeStartTimeTo(normalizeStartTimeTo), carId(carId), crossingData(crossingData) {
     currPosition = (crossingData.direction == Direction::EAST) ? currPosition = START_EAST : currPosition = START_WEST;
     carDecals = generateCarDecals(crossingData.direction);

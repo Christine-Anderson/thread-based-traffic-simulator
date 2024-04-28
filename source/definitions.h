@@ -28,6 +28,19 @@ enum Strategy {
     TIME_BASED_PREEMPTION
 };
 
+struct CrossingDatum {
+    Direction direction;
+    std::chrono::duration<double> startWaitTime;
+    std::chrono::duration<double> enterTime;
+    std::chrono::duration<double> leaveTime;
+};
+
+struct MenuData {
+    bool runSimulation;
+    Strategy threadSchedulingStrategy;
+    int numThreads;
+};
+
 std::string directionToString(Direction direction) {
     switch(direction) {
         case Direction::EAST:
@@ -53,12 +66,5 @@ std::string stateToString(CarState direction) {
             return "DONE";
     }
 }
-
-struct crossingDatum {
-    Direction direction;
-    std::chrono::duration<double> startWaitTime;
-    std::chrono::duration<double> enterTime;
-    std::chrono::duration<double> leaveTime;
-};
 
 #endif
