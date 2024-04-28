@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "statistics.h"
-#include "trafficDirector.h" //todo rename
+#include "trafficDirector.h"
 #include "threadSchedulingContext.h"
 #include "firstComeFirstServed.h"
 #include "timeBasedPreemption.h"
@@ -20,7 +20,7 @@ namespace traffic {
             ThreadSchedulingContext* context;
             std::vector<std::thread> cars;
 
-            TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians); // todo delete pedestrians
+            TrafficSimulator(Strategy strategy, int numCars);
             ~TrafficSimulator();
             Statistics* runSimulation();
             void setThreadSchedulingStrategy(Strategy strategy);
@@ -29,21 +29,19 @@ namespace traffic {
             TrafficDirector* trafficDirector;
             Strategy strategy;
             int numCars;
-            bool hasPedestrians;
 
             void intiThreadSchedulingStrategy(Strategy strategy);
             void startCars(int numCars);
             void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians)
-    : strategy(strategy), hasPedestrians(hasPedestrians), numCars(numCars) {
+    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCars)
+    : strategy(strategy), numCars(numCars) {
         intiThreadSchedulingStrategy(strategy);
         trafficDirector = (strategy == Strategy::TIME_BASED_PREEMPTION) ? new TrafficDirector(context, 250) : nullptr;
     }
  
     TrafficSimulator::~TrafficSimulator() {
-        delete stats;
         delete context;
         if (trafficDirector) {
             delete trafficDirector;
@@ -54,7 +52,7 @@ namespace traffic {
         if (strategy == Strategy::TIME_BASED_PREEMPTION) {
             trafficDirector->start();
         }
-        startCars(numCars); // todo loop sim for more stats?
+        startCars(numCars);
         waitForSimToEnd();
         if (strategy == Strategy::TIME_BASED_PREEMPTION) {
             trafficDirector->stop();

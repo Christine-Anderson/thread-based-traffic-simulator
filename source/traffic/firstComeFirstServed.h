@@ -52,12 +52,15 @@ namespace traffic {
 
         numCarsOnStreet++;
         // std::cout << threadId << " driveThroughStreet: " << numCarsOnStreet << " cars on street going " << streetDirection << std::endl;
+        
         int j = 0;
         for (int i = 0; i < 100000; i++) {
             j++;
         }
+
         assertStreetOccupancyConstraints(streetLock, carDirection);
         stats->recordOccupancy(numCarsOnStreet, carDirection);
+
         leaveStreet(streetLock, carDirection);
     }
 

@@ -10,7 +10,7 @@
 #include "threadSchedulingContext.h"
 
 namespace traffic {
-    class TrafficDirector { // todo rename
+    class TrafficDirector {
         public:
             TrafficDirector(ThreadSchedulingContext* context, int intervalMicrosec);
             void start();
