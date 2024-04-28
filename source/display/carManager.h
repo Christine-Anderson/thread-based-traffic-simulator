@@ -56,11 +56,11 @@ CarManager::~CarManager() {
 
 void CarManager::createCars() {
     const std::vector<std::thread::id>& crossingOrder = simStats->getCrossingOrder();
-    const std::unordered_map<std::thread::id, crossingDatum>& crossingData = simStats->getCrossingData();
+    const std::unordered_map<std::thread::id, CrossingDatum>& crossingData = simStats->getCrossingData();
     const std::chrono::duration<double> normalizeStartTimeTo = crossingData.at(crossingOrder[0]).startWaitTime;
 
     for (auto& threadId : crossingOrder) {  
-        crossingDatum data = crossingData.at(threadId);
+        CrossingDatum data = crossingData.at(threadId);
         Car* car = new Car(engine, startTime, normalizeStartTimeTo, threadId, data);
         data.direction == Direction::EAST? carsEast.push_back(car) : carsWest.push_back(car);
     }

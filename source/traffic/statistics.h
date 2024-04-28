@@ -24,13 +24,13 @@ namespace traffic {
             void recordOccupancy(int numCarsOnStreet, Direction direction);
             void printData();
             const std::vector<std::thread::id>& getCrossingOrder() const;
-            const std::unordered_map<std::thread::id, crossingDatum>& getCrossingData() const;
+            const std::unordered_map<std::thread::id, CrossingDatum>& getCrossingData() const;
             // const int (&getOccupancy())[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1]; todo for stats screen
 
         private:
             std::chrono::high_resolution_clock::time_point startTime;
             std::vector<std::thread::id> crossingOrder;
-            std::unordered_map<std::thread::id, crossingDatum> crossingData;
+            std::unordered_map<std::thread::id, CrossingDatum> crossingData;
             int occupancy[int(Direction::NUM_DIRECTIONS)][MAX_OCCUPANCY + 1];
             std::mutex statsMutex;
 
@@ -45,7 +45,7 @@ namespace traffic {
         std::lock_guard<std::mutex> statsLock(statsMutex);
 
         if (crossingData.find(threadId) == crossingData.end()) {
-            crossingData.emplace(threadId, crossingDatum{direction, {}, {}, {}});
+            crossingData.emplace(threadId, CrossingDatum{direction, {}, {}, {}});
             crossingOrder.push_back(threadId);
         }
         
@@ -72,7 +72,7 @@ namespace traffic {
         std::cout << "done here's the stats:" << std::endl;
 
         for(const auto& threadId : crossingOrder) {
-            crossingDatum data = crossingData[threadId];
+            CrossingDatum data = crossingData[threadId];
 
             std::cout   << "Key: " << threadId 
                         << ", Value: { direction: " << data.direction 
@@ -94,7 +94,7 @@ namespace traffic {
         return crossingOrder;
     }
 
-    const std::unordered_map<std::thread::id, crossingDatum>& Statistics::getCrossingData() const {
+    const std::unordered_map<std::thread::id, CrossingDatum>& Statistics::getCrossingData() const {
         return crossingData;
     }
 
