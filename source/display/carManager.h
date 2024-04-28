@@ -84,7 +84,7 @@ void CarManager::updateCarsPerDirection(std::chrono::high_resolution_clock::time
         Direction direction = cars[i]->getDirection();
         CarState state = cars[i]->getState();
 
-        if (state == WAITING_HIDDEN || state == WAITING_VISIBLE) { //todo refactor
+        if (state == WAITING_HIDDEN || state == WAITING_VISIBLE) {
             carsWaiting++;
         }
         

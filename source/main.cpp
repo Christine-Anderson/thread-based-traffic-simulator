@@ -18,7 +18,7 @@ class RenderSimulation : public olc::PixelGameEngine {
         }
 
         Menu* menu;
-        Statistics* simStats; //todo move private?
+        Statistics* simStats;
         CarManager* carManager;
 
     private:
@@ -67,7 +67,6 @@ class RenderSimulation : public olc::PixelGameEngine {
                 break;
         }
 		
-        // this->DrawRectDecal({ 100, 100 }, {100, 50}, olc::RED);
         this->DrawStringDecal({10, 10}, "X: " + std::to_string(GetMouseX()) + " Y: " + std::to_string(GetMouseY()), olc::WHITE, {2.0, 2.0}); //todo delete
         // this->DrawRectDecal({ static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, {512, 512}, olc::RED);
 

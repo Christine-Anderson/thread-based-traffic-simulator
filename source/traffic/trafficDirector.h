@@ -7,26 +7,26 @@
 #include <thread>
 #include <mutex>
 
-#include "trafficManagementContext.h"
+#include "threadSchedulingContext.h"
 
 namespace traffic {
-    class TrafficDirector {
+    class TrafficDirector { // todo rename
         public:
-            TrafficDirector(TrafficManagementContext* context, int intervalMillisec);
+            TrafficDirector(ThreadSchedulingContext* context, int intervalMicrosec);
             void start();
             void stop();
         
         private:
-            TrafficManagementContext* context;
-            int intervalMillisec;
+            ThreadSchedulingContext* context;
+            int intervalMicrosec;
             bool running;
             std::thread directorThread;
 
             void run();
     };
     
-    TrafficDirector::TrafficDirector(TrafficManagementContext* context, int intervalMillisec) 
-        : context(context), intervalMillisec(intervalMillisec), running(false) {}
+    TrafficDirector::TrafficDirector(ThreadSchedulingContext* context, int intervalMicrosec) 
+        : context(context), intervalMicrosec(intervalMicrosec), running(false) {}
 
     void TrafficDirector::start() {
         running = true;
@@ -46,14 +46,12 @@ namespace traffic {
 
             while (running) {
                 auto currentTime = std::chrono::steady_clock::now();
-                auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-                int remainingTime = intervalMillisec - static_cast<int>(elapsedTime);
+                auto elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime).count();
+                int remainingTime = intervalMicrosec - static_cast<int>(elapsedTime);
 
                 if(remainingTime <= 0) {
                     context->changeStreetDirection();
                 }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
     }

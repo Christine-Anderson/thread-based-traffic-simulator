@@ -8,22 +8,22 @@
 
 #include "statistics.h"
 #include "trafficDirector.h" //todo rename
-#include "trafficManagementContext.h"
+#include "threadSchedulingContext.h"
 #include "firstComeFirstServed.h"
 #include "timeBasedPreemption.h"
 #include "../definitions.h"
 
 namespace traffic {
-    class TrafficSimulator { // todo Thread scheduling simulator
+    class TrafficSimulator {
         public:
             Statistics* stats = nullptr;
-            TrafficManagementContext* context;
+            ThreadSchedulingContext* context;
             std::vector<std::thread> cars;
 
-            TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians); // todo need to add in the vars we want user to be able to change
+            TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians); // todo delete pedestrians
             ~TrafficSimulator();
             Statistics* runSimulation();
-            void setTrafficManagementStrategy(Strategy strategy);
+            void setThreadSchedulingStrategy(Strategy strategy);
 
         private:
             TrafficDirector* trafficDirector;
@@ -31,17 +31,17 @@ namespace traffic {
             int numCars;
             bool hasPedestrians;
 
-            void initTrafficManagementStrategy(Strategy strategy);
+            void intiThreadSchedulingStrategy(Strategy strategy);
             void startCars(int numCars);
             void waitForSimToEnd();
     };
     
-    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians) // todo random number of cars of east and west
+    TrafficSimulator::TrafficSimulator(Strategy strategy, int numCars, bool hasPedestrians)
     : strategy(strategy), hasPedestrians(hasPedestrians), numCars(numCars) {
-        initTrafficManagementStrategy(strategy);
-        trafficDirector = (strategy == Strategy::TIME_BASED_PREEMPTION) ? new TrafficDirector(context, 1000) : nullptr;
+        intiThreadSchedulingStrategy(strategy);
+        trafficDirector = (strategy == Strategy::TIME_BASED_PREEMPTION) ? new TrafficDirector(context, 250) : nullptr;
     }
-
+ 
     TrafficSimulator::~TrafficSimulator() {
         delete stats;
         delete context;
@@ -63,7 +63,7 @@ namespace traffic {
         return stats;
     }
 
-    void TrafficSimulator::setTrafficManagementStrategy(Strategy strategy) {
+    void TrafficSimulator::setThreadSchedulingStrategy(Strategy strategy) {
         if(stats) {
             delete stats;
         }
@@ -82,7 +82,7 @@ namespace traffic {
         }
     }
 
-    void TrafficSimulator::initTrafficManagementStrategy(Strategy strategy) {
+    void TrafficSimulator::intiThreadSchedulingStrategy(Strategy strategy) {
         if(stats) {
             delete stats;
         }
@@ -90,13 +90,13 @@ namespace traffic {
 
         switch(strategy) {
             case Strategy::FIRST_COME_FIRST_SERVED:
-                context = new TrafficManagementContext(std::make_unique<FirstComeFirstServed>(stats));
+                context = new ThreadSchedulingContext(std::make_unique<FirstComeFirstServed>(stats));
                 break;
             case Strategy::TIME_BASED_PREEMPTION:
-                context = new TrafficManagementContext(std::make_unique<TimeBasedPreemption>(stats));
+                context = new ThreadSchedulingContext(std::make_unique<TimeBasedPreemption>(stats));
                 break;
             default:
-                context = new TrafficManagementContext(std::make_unique<TimeBasedPreemption>(stats));
+                context = new ThreadSchedulingContext(std::make_unique<TimeBasedPreemption>(stats));
                 break;
         }
     }
@@ -108,11 +108,11 @@ namespace traffic {
 
         for (int i = 0; i < numCars; ++i) {
             Direction direction = (dirDist(gen) == 0) ? Direction::EAST : Direction::WEST;
-            cars.emplace_back(&TrafficManagementContext::enterStreet, context, direction);
+            cars.emplace_back(&ThreadSchedulingContext::enterStreet, context, direction);
         }
     }
 
-    void TrafficSimulator::waitForSimToEnd() { // todo add pedestrians (like an interrupt to the threads, make all threads wait)
+    void TrafficSimulator::waitForSimToEnd() {
         for(auto& thread : cars) {
             thread.join();
         }

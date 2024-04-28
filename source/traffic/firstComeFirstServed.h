@@ -11,7 +11,7 @@
 #include "../definitions.h"
 
 namespace traffic {
-    class FirstComeFirstServed : public TrafficManagementStrategy {
+    class FirstComeFirstServed : public ThreadSchedulingStrategy {
         public:
             FirstComeFirstServed(Statistics* stats);
             ~FirstComeFirstServed();
@@ -25,7 +25,6 @@ namespace traffic {
             std::mutex streetMutex;
 
             void driveThroughStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
-            void waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
             void leaveStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
             void assertStreetOccupancyConstraints(std::unique_lock<std::mutex>& streetLock, Direction carDirection);
     };
@@ -60,10 +59,6 @@ namespace traffic {
         assertStreetOccupancyConstraints(streetLock, carDirection);
         stats->recordOccupancy(numCarsOnStreet, carDirection);
         leaveStreet(streetLock, carDirection);
-    }
-
-    void FirstComeFirstServed::waitToEnterStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {
-        // std::cout << threadId << " waiting to go " << directionToString(carDirection) << std::endl;
     }
 
     void FirstComeFirstServed::leaveStreet(std::unique_lock<std::mutex>& streetLock, Direction carDirection) {

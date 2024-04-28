@@ -69,7 +69,7 @@ namespace traffic {
     }
 
     void Statistics::printData() {
-        std::cout << "done here's the stats:" << std::endl;
+        std::cout << "Done here's the stats:" << std::endl;
 
         for(const auto& threadId : crossingOrder) {
             CrossingDatum data = crossingData[threadId];

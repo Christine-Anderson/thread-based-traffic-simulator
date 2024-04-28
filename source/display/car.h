@@ -102,15 +102,15 @@ void Car::updateState(std::chrono::high_resolution_clock::time_point currentTime
     auto timeSinceStart = std::chrono::duration<double>(currentTime - startTime);
 
     if (timeSinceStart > startWaitTime && timeSinceStart < enterTime && state == CarState::HIDDEN && state != CarState::WAITING_HIDDEN) {
-        std::cout << "waiting hidden" << std::endl;
+        // std::cout << "waiting hidden" << std::endl;
         state = CarState::WAITING_HIDDEN;
         initState(state);        
     } else if (timeSinceStart >= enterTime && timeSinceStart <= leaveTime && state == CarState::WAITING_VISIBLE && state != CarState::CROSSING) {
-        std::cout << "crossing" << std::endl;
+        // std::cout << "crossing" << std::endl;
         state = CarState::CROSSING;
         initState(state);
     } else if (timeSinceStart > leaveTime && state != CarState::DONE) {
-        std::cout << "done" << std::endl;
+        // std::cout << "done" << std::endl;
         state = CarState::DONE;
     }
 }
@@ -233,7 +233,6 @@ CarState Car::getState() {
 
 void Car::setState(CarState newState) {
     state = newState;
-    std::cout << "new state " << stateToString(state) << std::endl;
 }
 
 #endif
