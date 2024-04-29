@@ -94,25 +94,29 @@ class RenderSimulation : public olc::PixelGameEngine {
         averageWaitTime = averageWaitTime / crossingData.size();
         std::string formattedWaitTime = getFormattedWaitTime(averageWaitTime);
 
-        this->DrawStringDecal({520, 430}, formattedWaitTime, olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({520, 425}, formattedWaitTime, olc::BLACK, {2.0, 2.0});
 
         const int (&occupancy)[NUM_DIRECTIONS][MAX_OCCUPANCY + 1] = simStats->getOccupancy();
 
-        std::vector<std::string> occupancyStrings(NUM_DIRECTIONS); 
+        std::vector<std::string> occupancyStrings; 
         for (int i = 0; i < NUM_DIRECTIONS; i++) {
             for (int j = 1; j < MAX_OCCUPANCY + 1; j++) {
-                occupancyStrings[i] += std::to_string(occupancy[i][j]) + " ";
+                occupancyStrings.push_back(std::to_string(occupancy[i][j]));
             }
         }
-        this->DrawStringDecal({490, 522}, occupancyStrings[0], olc::BLACK, {2.0, 2.0});
-        this->DrawStringDecal({490, 548}, occupancyStrings[1], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({485, 550}, occupancyStrings[0], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({530, 550}, occupancyStrings[1], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({570, 550}, occupancyStrings[2], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({485, 575}, occupancyStrings[3], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({530, 575}, occupancyStrings[4], olc::BLACK, {2.0, 2.0});
+        this->DrawStringDecal({570, 575}, occupancyStrings[5], olc::BLACK, {2.0, 2.0});
     }
 
     std::string getFormattedWaitTime(float averageWaitTime) {
         std::string formattedWaitTime = std::to_string(averageWaitTime);
         size_t decimalPos = formattedWaitTime.find('.');
-        if (decimalPos != std::string::npos && formattedWaitTime.size() > decimalPos + 4) {
-            formattedWaitTime = formattedWaitTime.substr(0, decimalPos + 4);
+        if (decimalPos != std::string::npos && formattedWaitTime.size() > decimalPos + 3) {
+            formattedWaitTime = formattedWaitTime.substr(0, decimalPos + 3);
         }
         return formattedWaitTime;
     }
